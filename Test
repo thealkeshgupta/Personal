@@ -1,0 +1,81 @@
+import React, { useState } from 'react';
+import { useDrag, useDrop } from 'react-dnd';
+
+const ItemTypes = {
+  TEXT: 'text',
+};
+
+const DraggableText = ({ text, id }) => {
+  const [{ isDragging }, drag] = useDrag({
+    item: { type: ItemTypes.TEXT, id, text },
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  });
+
+  return (
+    <div
+      ref={drag}
+      style={{ opacity: isDragging ? 0.5 : 1, cursor: 'move', marginBottom: '8px' }}
+    >
+      {text}
+    </div>
+  );
+};
+
+const DroppableArea = ({ name, onDrop }) => {
+  const [{ isOver }, drop] = useDrop({
+    accept: ItemTypes.TEXT,
+    drop: (item) => onDrop(item, name),
+    collect: (monitor) => ({
+      isOver: !!monitor.isOver(),
+    }),
+  });
+
+  return (
+    <div
+      ref={drop}
+      style={{
+        padding: '8px',
+        border: '1px dashed #000',
+        backgroundColor: isOver ? '#f0f0f0' : 'transparent',
+        marginBottom: '20px',
+      }}
+    >
+      {name}
+    </div>
+  );
+};
+
+const App = () => {
+  const [droppedItems, setDroppedItems] = useState([]);
+
+  const handleDrop = (item, target) => {
+    console.log(`Text: ${item.text} | Source: div${item.id} | Target: ${target}`);
+    setDroppedItems([...droppedItems, { text: item.text, source: `div${item.id}`, target }]);
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        {[1, 2, 3, 4, 5, 6].map((index) => (
+          <DraggableText key={index} id={index} text={`div${index}`} />
+        ))}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <DroppableArea name="home1" onDrop={handleDrop} />
+        <DroppableArea name="home2" onDrop={handleDrop} />
+      </div>
+      <div>
+        <h3>Dropped Items</h3>
+        <ul>
+          {droppedItems.map((item, index) => (
+            <li key={index}>{`Text: ${item.text} | Source: ${item.source} | Target: ${item.target}`}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+};
+
+export default App;
